@@ -57,14 +57,14 @@ class Ray:
       pass
 
 class EmittingDemo(PyGameDemo):
-  RAY_TRAIL_LENGTH = 50
-  MAXIMUM_RAYS = 16
-  RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
-  EMIT_COOLDOWN = RAYS_PER_EMIT << 8
+  RAY_TRAIL_LENGTH = 500
+  # MAXIMUM_RAYS = 16
+  # RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
+  # EMIT_COOLDOWN = RAYS_PER_EMIT << 8
   # TODO: Have fun with these! Definitely a particle system in this code, lol!
-  # MAXIMUM_RAYS = 128
-  # RAYS_PER_EMIT = MAXIMUM_RAYS >> 0
-  # EMIT_COOLDOWN = RAYS_PER_EMIT >> 0
+  MAXIMUM_RAYS = 128
+  RAYS_PER_EMIT = MAXIMUM_RAYS >> 4
+  EMIT_COOLDOWN = 0 #RAYS_PER_EMIT >> 0
   # MAXIMUM_RAYS = 2
   # RAYS_PER_EMIT = MAXIMUM_RAYS >> 1
   # EMIT_COOLDOWN = RAYS_PER_EMIT << 8
