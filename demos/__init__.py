@@ -5,6 +5,7 @@ import pygame
 class PyGameDemo:
   def __init__(self):
     pygame.init()
+    self.clock = pygame.time.Clock()
 
   def createWindow(self, length, height):
     self.window = pygame.display.set_mode((length, height))#.convert_alpha()
@@ -33,6 +34,7 @@ class PyGameDemo:
       
       if running:
         self.update()
+        self.clock.tick()
 
   def __del__(self):
     pygame.quit()

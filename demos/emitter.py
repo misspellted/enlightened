@@ -6,11 +6,27 @@ import pygame
 class Ray:
   MAXIMUM_LIFE = 2000
 
+  @staticmethod
+  def reflect(lower, current, modifier, upper):
+    next, modified = current, modifier
+
+    if next + modified < lower:
+      modified *= -1
+      next = lower + (modified - next + lower)
+    elif upper < next + modified:
+      next = upper - (next + modified - upper)
+      modified *= -1
+    else:
+      next += modified
+
+    return (next, modified)
+
   def __init__(self, position):
     self.lastPosition = None
     self.position = position
-    self.velocity = (random(), random())
-    self.rayColor = (127, 127, 0)
+    self.velocity = (random() - 0.5, random() - 0.5)
+    #self.rayColor = (127, 127, 0)
+    self.rayColor = (int(random() * 255), int(random() * 255), int(random() * 255))
     self.life = int(random() * Ray.MAXIMUM_LIFE)
     self.trail = list()
 
@@ -19,24 +35,39 @@ class Ray:
       self.lastPosition = self.position
       px, py = self.position
       vx, vy = self.velocity
-      if not 0 <= px < space[0]:
-        vx *= -1
-      if not 0 <= py < space[1]:
-        vy *= -1
-      px += vx
-      py += vy
+
+      # print(f"[{vx, vy}] @ ({px}, {py})")
+
+      # Reflect the ray if necessary.
+      px, vx = Ray.reflect(0, px, vx, space[0])
+      py, vy = Ray.reflect(0, py, vy, space[1])
+
+      # print(f"[{vx, vy}] @ ({px}, {py})")
+
       self.position = (px, py)
       self.velocity = (vx, vy)
       self.life -= 1
 
   def draw(self, surface):
-    pygame.draw.line(surface, self.rayColor, self.lastPosition, self.position)
-    self.trail.append((self.lastPosition, self.position))
+    try:
+      pygame.draw.line(surface, self.rayColor, self.lastPosition, self.position)
+      self.trail.append((self.lastPosition, self.position))
+    except TypeError as oops:
+      print(f"Failed at {self.lastPosition} -> {self.position}!")
+      pass
 
 class EmittingDemo(PyGameDemo):
-  MAXIMUM_RAYS = 16
-  RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
-  EMIT_COOLDOWN = RAYS_PER_EMIT << 8
+  RAY_TRAIL_LENGTH = 500
+  # MAXIMUM_RAYS = 16
+  # RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
+  # EMIT_COOLDOWN = RAYS_PER_EMIT << 8
+  # TODO: Have fun with these! Definitely a particle system in this code, lol!
+  MAXIMUM_RAYS = 128
+  RAYS_PER_EMIT = MAXIMUM_RAYS >> 4
+  EMIT_COOLDOWN = 0 #RAYS_PER_EMIT >> 0
+  # MAXIMUM_RAYS = 2
+  # RAYS_PER_EMIT = MAXIMUM_RAYS >> 1
+  # EMIT_COOLDOWN = RAYS_PER_EMIT << 8
 
   def __init__(self):
     PyGameDemo.__init__(self)
@@ -52,6 +83,7 @@ class EmittingDemo(PyGameDemo):
     self.absorbColor = (0, 127, 0) # Green for 'grab'/absorb
     self.rays = list() # Track the rays in the scene.
     self.emitCoolDown = 0
+    self.wiping = False
 
   def createWindow(self, length, height):
     PyGameDemo.createWindow(self, length, height)
@@ -66,6 +98,8 @@ class EmittingDemo(PyGameDemo):
         self.emitting = True
       elif event.button == pygame.BUTTON_RIGHT:
         self.absorbing = True
+      elif event.button == pygame.BUTTON_MIDDLE:
+        self.wiping = True
       else:
         PyGameDemo.processEvent(self, event)
     elif event.type == pygame.MOUSEBUTTONUP:
@@ -73,6 +107,8 @@ class EmittingDemo(PyGameDemo):
         self.emitting = False
       elif event.button == pygame.BUTTON_RIGHT:
         self.absorbing = False
+      elif event.button == pygame.BUTTON_MIDDLE:
+        self.wiping = False
       else:
         PyGameDemo.processEvent(self, event)
     else:
@@ -88,6 +124,10 @@ class EmittingDemo(PyGameDemo):
     return emitted
 
   def update(self):
+    # Wipe the window if it was requested.
+    if self.wiping:
+      self.window.fill((0, 0, 0))
+
     # Redraw where the last cursor was.
     if self.lastCursorRect is not None:
       self.window.blit(self.lastCursorArea, self.lastCursorRect)
@@ -129,8 +169,9 @@ class EmittingDemo(PyGameDemo):
       for ray in self.rays:
         ray.update(self.window.get_size())
 
-        if 0 < len(ray.trail):
-          pygame.draw.line(self.window, (0, 0, 0), ray.trail[-1][0], ray.trail[-1][0])
+        if (EmittingDemo.RAY_TRAIL_LENGTH - 1) < len(ray.trail):
+          pygame.draw.line(self.window, (0, 0, 0), ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0], ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0])
+          # pygame.draw.aaline(self.window, (0, 0, 0), ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0], ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0])
 
         ray.draw(self.window)
 
