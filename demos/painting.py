@@ -1,67 +1,81 @@
 
-from demos import PyGameDemo
-import pygame
 
-class PaintingDemo(PyGameDemo):
-  def __init__(self):
-    PyGameDemo.__init__(self)
-    self.cursorPosition = None
-    self.cursorColor = (127, 127, 127)
-    self.cursorRadius = 20
-    self.cursorRect = None
-    self.lastCursorRect = None
-    self.lastCursorArea = None
+from attributes.updated import Updated
+from demos import PyGameApp
+from geometry.vertices import Vertex2
+import pygame
+from scenes.pygame import PyGameScene
+
+
+class PaintingScene(PyGameScene, Updated):
+  def __init__(self, length, height):
+    PyGameScene.__init__(self, length, height)
     self.painting = False
     self.paintColor = (127, 0, 0)
     self.erasing = False
     self.eraseColor = (0, 0, 0)
 
-  def processEvent(self, event):
-    if event.type == pygame.MOUSEMOTION:
-      self.cursorPosition = event.pos
-    elif event.type == pygame.MOUSEBUTTONDOWN:
-      if event.button == pygame.BUTTON_LEFT:
-        self.painting = True
-      elif event.button == pygame.BUTTON_RIGHT:
-        self.erasing = True
-      else:
-        PyGameDemo.processEvent(self, event)
-    elif event.type == pygame.MOUSEBUTTONUP:
-      if event.button == pygame.BUTTON_LEFT:
-        self.painting = False
-      elif event.button == pygame.BUTTON_RIGHT:
-        self.erasing = False
-      else:
-        PyGameDemo.processEvent(self, event)
-    else:
-      PyGameDemo.processEvent(self, event)
+  def onMouseButtonDown(self, event):
+    handled = False
 
-  def update(self):
-    # Redraw where the last cursor was.
-    if self.lastCursorRect is not None:
-      self.window.blit(self.lastCursorArea, self.lastCursorRect)
+    if event.button == pygame.BUTTON_LEFT:
+      self.painting = True
+      handled = True
+    elif event.button == pygame.BUTTON_RIGHT:
+      self.erasing = True
+      handled = True
 
-    if self.cursorPosition is not None:
+    return handled
+
+  def onMouseButtonUp(self, event):
+    handled = False
+
+    if event.button == pygame.BUTTON_LEFT:
+      self.painting = False
+      handled = True
+    elif event.button == pygame.BUTTON_RIGHT:
+      self.erasing = False
+      handled = True
+
+    return handled
+
+  def update(self, **kwargs):
+    cursor = kwargs["cursor"] if "cursor" in kwargs else None
+
+    if cursor:
       # Draw a circle any time we're "painting" or "erasing".
       if self.painting:
-        pygame.draw.circle(self.window, self.paintColor, self.cursorPosition, self.cursorRadius, 1)
+        pygame.draw.circle(self.scene, self.paintColor, cursor.position.tupled(), cursor.radius, 1)
       elif self.erasing:
-        pygame.draw.circle(self.window, self.eraseColor, self.cursorPosition, self.cursorRadius, 1)
+        pygame.draw.circle(self.scene, self.eraseColor, cursor.position.tupled(), cursor.radius, 1)
 
-      # Capture the area under where the cursor would be drawn.
-      self.cursorRect = pygame.Rect(0, 0, self.cursorRadius * 2, self.cursorRadius * 2)
-      self.cursorRect.center = self.cursorPosition
 
-      # Stay within the bounds of the window.
-      if self.cursorRect.left < 0: self.cursorRect.left = 0
-      if self.windowDimensions[0] < self.cursorRect.right: self.cursorRect.right = self.windowDimensions[0]
-      if self.cursorRect.top < 0: self.cursorRect.top = 0
-      if self.windowDimensions[1] < self.cursorRect.bottom: self.cursorRect.bottom = self.windowDimensions[1]
 
-      self.lastCursorRect = self.cursorRect.copy()
-      self.lastCursorArea = self.window.subsurface(self.cursorRect).copy()
+class PaintingDemo(PyGameApp):
+  def __init__(self):
+    PyGameApp.__init__(self)
+    self.scene = None
+    self.cameraSensor = None
 
-      # Then draw the cursor.
-      pygame.draw.circle(self.window, self.cursorColor, self.cursorPosition, self.cursorRadius, 1)
+  def onCameraSensorConfigured(self, cameraSensor):
+    self.scene = PaintingScene(*cameraSensor.dimensions.tupled())
+    self.cameraSensor = cameraSensor
 
-    PyGameDemo.update(self)
+  def onMouseButtonDown(self, event):
+    return False if not self.scene else self.scene.onMouseButtonDown(event)
+
+  def onMouseButtonUp(self, event):
+    return False if not self.scene else self.scene.onMouseButtonUp(event)
+
+  def update(self):
+    PyGameApp.update(self)
+
+    rendering = None
+
+    if self.scene:
+      self.scene.update(cursor=self.cursor)
+      rendering = self.scene.render()
+
+    if self.cameraSensor and rendering:
+      self.cameraSensor.displayRendering(rendering, Vertex2(0, 0))
+

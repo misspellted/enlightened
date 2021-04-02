@@ -1,5 +1,5 @@
 
-from demos import PyGameDemo
+from demos import PyGameApp
 from random import random
 import pygame
 
@@ -28,7 +28,11 @@ class Ray:
     #self.rayColor = (127, 127, 0)
     self.rayColor = (int(random() * 255), int(random() * 255), int(random() * 255))
     self.life = int(random() * Ray.MAXIMUM_LIFE)
+    # self.life = Ray.MAXIMUM_LIFE
     self.trail = list()
+
+  def alive(self):
+    return 0 < self.life
 
   def update(self, space):
     if 0 < self.life:
@@ -56,21 +60,21 @@ class Ray:
       print(f"Failed at {self.lastPosition} -> {self.position}!")
       pass
 
-class EmittingDemo(PyGameDemo):
+class EmittingDemo(PyGameApp):
   RAY_TRAIL_LENGTH = 500
   # MAXIMUM_RAYS = 16
   # RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
   # EMIT_COOLDOWN = RAYS_PER_EMIT << 8
   # TODO: Have fun with these! Definitely a particle system in this code, lol!
-  MAXIMUM_RAYS = 128
-  RAYS_PER_EMIT = MAXIMUM_RAYS >> 4
+  MAXIMUM_RAYS = 1024
+  RAYS_PER_EMIT = MAXIMUM_RAYS >> 0
   EMIT_COOLDOWN = 0 #RAYS_PER_EMIT >> 0
   # MAXIMUM_RAYS = 2
   # RAYS_PER_EMIT = MAXIMUM_RAYS >> 1
   # EMIT_COOLDOWN = RAYS_PER_EMIT << 8
 
   def __init__(self):
-    PyGameDemo.__init__(self)
+    PyGameApp.__init__(self)
     self.cursorPosition = None
     self.cursorColor = (0, 0, 127) # Blue for 'bounce'
     self.cursorRadius = 10
@@ -84,53 +88,60 @@ class EmittingDemo(PyGameDemo):
     self.rays = list() # Track the rays in the scene.
     self.emitCoolDown = 0
     self.wiping = False
+    self.baseCaption = "Emitter Demo"
 
-  def createWindow(self, length, height):
-    PyGameDemo.createWindow(self, length, height)
-    # Hide the mouse cursor for this demo.
-    pygame.mouse.set_visible(False)
+  def onMouseMotion(self, event):
+    PyGameApp.onMouseMotion(self, event)
+    self.cursorPosition = self.cursor.position.tupled()
+    return True
 
-  def processEvent(self, event):
-    if event.type == pygame.MOUSEMOTION:
-      self.cursorPosition = event.pos
-    elif event.type == pygame.MOUSEBUTTONDOWN:
-      if event.button == pygame.BUTTON_LEFT:
-        self.emitting = True
-      elif event.button == pygame.BUTTON_RIGHT:
-        self.absorbing = True
-      elif event.button == pygame.BUTTON_MIDDLE:
-        self.wiping = True
-      else:
-        PyGameDemo.processEvent(self, event)
-    elif event.type == pygame.MOUSEBUTTONUP:
-      if event.button == pygame.BUTTON_LEFT:
-        self.emitting = False
-      elif event.button == pygame.BUTTON_RIGHT:
-        self.absorbing = False
-      elif event.button == pygame.BUTTON_MIDDLE:
-        self.wiping = False
-      else:
-        PyGameDemo.processEvent(self, event)
-    else:
-      PyGameDemo.processEvent(self, event)
+  def onMouseButtonDown(self, event):
+    handled = False
+
+    if event.button == pygame.BUTTON_LEFT:
+      self.emitting = True
+      handled = True
+    elif event.button == pygame.BUTTON_RIGHT:
+      self.absorbing = True
+      handled = True
+    elif event.button == pygame.BUTTON_MIDDLE:
+      self.wiping = True
+      handled = True
+
+    return handled
+
+  def onMouseButtonUp(self, event):
+    handled = False
+
+    if event.button == pygame.BUTTON_LEFT:
+      self.emitting = False
+      handled = True
+    elif event.button == pygame.BUTTON_RIGHT:
+      self.absorbing = False
+      handled = True
+    elif event.button == pygame.BUTTON_MIDDLE:
+      self.wiping = False
+      handled = True
+
+    return handled
   
   def emitRays(self, cursorPosition):
     # Only have 16 rays maximum at a time.
     # And only emit so many per time.
     emitted = 0
-    while len(self.rays) < EmittingDemo.MAXIMUM_RAYS and emitted < EmittingDemo.RAYS_PER_EMIT:
+    while emitted < EmittingDemo.RAYS_PER_EMIT: # len(self.rays) < EmittingDemo.MAXIMUM_RAYS: # and emitted < EmittingDemo.RAYS_PER_EMIT:
       self.rays.append(Ray(cursorPosition))
       emitted += 1
     return emitted
 
-  def update(self):
+  def update(self):#, msTimeSinceStart):
     # Wipe the window if it was requested.
     if self.wiping:
-      self.window.fill((0, 0, 0))
+      self.viewer.buffer.fill((0, 0, 0))
 
     # Redraw where the last cursor was.
     if self.lastCursorRect is not None:
-      self.window.blit(self.lastCursorArea, self.lastCursorRect)
+      self.viewer.buffer.blit(self.lastCursorArea, self.lastCursorRect)
 
     if self.cursorPosition is not None:
       # Capture the area under where the cursor would be drawn.
@@ -138,10 +149,11 @@ class EmittingDemo(PyGameDemo):
       self.cursorRect.center = self.cursorPosition
 
       # Stay within the bounds of the window.
-      self.cursorRect.clamp_ip(0, 0, self.windowDimensions[0], self.windowDimensions[1])
+      windowDimensions = self.viewer.buffer.get_size()
+      self.cursorRect.clamp_ip(0, 0, windowDimensions[0], windowDimensions[1])
       
       self.lastCursorRect = self.cursorRect.copy()
-      self.lastCursorArea = self.window.subsurface(self.cursorRect).copy()
+      self.lastCursorArea = self.viewer.buffer.subsurface(self.cursorRect).copy()
 
       # The cursor color is dependent on the state of the demo.
       cursorColor = self.cursorColor
@@ -150,7 +162,7 @@ class EmittingDemo(PyGameDemo):
       elif self.absorbing:
         cursorColor = self.absorbColor
 
-      pygame.draw.circle(self.window, cursorColor, self.cursorPosition, self.cursorRadius, 1)
+      pygame.draw.circle(self.viewer.buffer, cursorColor, self.cursorPosition, self.cursorRadius, 1)
 
       # TODO: Absorb any rays hitting the cursor in absorb 'mode'.
 
@@ -166,15 +178,20 @@ class EmittingDemo(PyGameDemo):
         else:
           self.emitCoolDown -= 1
 
+      self.captionSuffix = f" - {len(self.rays)} ray(s)"
+
       for ray in self.rays:
-        ray.update(self.window.get_size())
+        ray.update(self.viewer.buffer.get_size())
 
         if (EmittingDemo.RAY_TRAIL_LENGTH - 1) < len(ray.trail):
-          pygame.draw.line(self.window, (0, 0, 0), ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0], ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0])
-          # pygame.draw.aaline(self.window, (0, 0, 0), ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0], ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0])
+          pygame.draw.line(self.viewer.buffer, (0, 0, 0), ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0], ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0])
+          # pygame.draw.aaline(self.viewer.buffer, (0, 0, 0), ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0], ray.trail[-EmittingDemo.RAY_TRAIL_LENGTH][0])
 
-        ray.draw(self.window)
+        ray.draw(self.viewer.buffer)
 
-      self.rays = [ray for ray in self.rays if 0 < ray.life]
+      self.rays = [ray for ray in self.rays if ray.alive()]
 
-    PyGameDemo.update(self)
+    PyGameApp.update(self)#, msTimeSinceStart)
+
+  def run(self, windowLength, windowHeight):
+    PyGameApp.run(self, windowLength, windowHeight, False) # Hide the cursor for this demo.
