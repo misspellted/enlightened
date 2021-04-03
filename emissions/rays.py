@@ -23,6 +23,9 @@ class Ray(Living, Moving2, Entity):
   def alive(self):
     return 0 < self.life
 
+  def bounce(self):
+    pass # Do nothing on the notification that a bounce occurred.
+
   def live(self, **kwargs):
     space = kwargs["space"] if "space" in kwargs else None
 

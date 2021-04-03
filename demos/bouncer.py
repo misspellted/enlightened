@@ -1,14 +1,29 @@
 
 from attributes.rendered import Rendered
+from attributes.updated import Updated
 from demos import PyGameApp, PyGameCursor
-from emissions.rays import Ray
+from demos.emitter import EmittingCursor
+from entities.rays import Ray
 from geometry.vertices import Vertex2
-from random import random
 import pygame
+from random import random
+from scenes.pygame import PyGameScene
 
 
-MAXIMUM_LIFE = 2000
-MAXIMUM_BOUNCES = 2
+RAY_MAXIMUM_LIFE = 2000
+RAY_MAXIMUM_BOUNCES = 2
+
+
+# MAXIMUM_RAYS = 16
+# RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
+# EMIT_COOLDOWN = RAYS_PER_EMIT << 8
+# TODO: Have fun with these! Definitely a particle system in this code, lol!
+MAXIMUM_RAYS = 1024
+RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
+EMIT_COOLDOWN = RAYS_PER_EMIT >> 1
+# MAXIMUM_RAYS = 2
+# RAYS_PER_EMIT = MAXIMUM_RAYS >> 1
+# EMIT_COOLDOWN = RAYS_PER_EMIT << 8
 
 
 class Buffer(pygame.Surface):
@@ -49,56 +64,45 @@ class BRCursor(PyGameCursor, Rendered):
 
 
 class BouncingRay(Ray):
-  def __init__(self, bounces, position, rayColor):
-    # A bouncing ray doesn't have a simple evolution-based life.
+  def __init__(self, position, bounces):
+    Ray.__init__(self, position, rayColor=(127, 127, 0))
     # It's life is based on bounces.
-    Ray.__init__(self, MAXIMUM_LIFE, position, rayColor)
     self.bounces = bounces
 
-  # def alive(self):
-  #   return 0 < self.bounces
+  def alive(self):
+    # Ensure life remains neutral.
+    self.life = 0
+    return 0 < self.bounces
+
+  def onReflection(self):
+    self.bounces -= 1
 
 
-class BouncingDemo(PyGameApp):
-  # RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
-  # EMIT_COOLDOWN = RAYS_PER_EMIT << 8
-  # TODO: Have fun with these! Definitely a particle system in this code, lol!
-  MAXIMUM_RAYS = 128
-  RAYS_PER_EMIT = MAXIMUM_RAYS >> 4
-  EMIT_COOLDOWN = 32 #RAYS_PER_EMIT << 1
-  # RAYS_PER_EMIT = 1
-  # EMIT_COOLDOWN = 32
+class BouncingCursor(EmittingCursor):
+  def __init__(self, cameraOverlay, radius=20, cursorVisible=True):
+    EmittingCursor.__init__(self, cameraOverlay, radius=radius, cursorVisible=cursorVisible)
 
-  def __init__(self):
-    PyGameApp.__init__(self)
-    self.cursor = BRCursor(10)
-    self.cursorPosition = None
-    self.lastCursorRect = None
-    self.lastCursorArea = None
+  def emitRay(self):
+    return BouncingRay(self.position.tupled(), RAY_MAXIMUM_BOUNCES)
+
+
+class BouncingScene(PyGameScene):
+  def __init__(self, length, height):
+    PyGameScene.__init__(self, length, height)
+    self.bouncing = True
     self.emitting = False
-    self.emitColor = (127, 0, 0) # Red for emit
-    self.absorbing = False
-    self.absorbColor = (0, 127, 0) # Green for 'grab'/absorb
-    self.rays = list() # Track the rays in the scene.
-    self.emitCoolDown = 0
+    self.grabbing = False
     self.wiping = False
-    self.buffer = None
-    self.lastRayCount = 0
-
-  def onViewerDimensioned(self, length, height):
-    print(f"Viewer dimensions: ({length}, {height})")
-    self.buffer = Buffer(length, height)
+    self.rays = list()
 
   def onMouseButtonDown(self, event):
     handled = False
 
     if event.button == pygame.BUTTON_LEFT:
-      self.cursor.emit()
       self.emitting = True
       handled = True
     elif event.button == pygame.BUTTON_RIGHT:
-      self.cursor.grab()
-      self.absorbing = True
+      self.grabbing = True
       handled = True
     elif event.button == pygame.BUTTON_MIDDLE:
       self.wiping = True
@@ -110,73 +114,73 @@ class BouncingDemo(PyGameApp):
     handled = False
 
     if event.button == pygame.BUTTON_LEFT:
-      self.cursor.bounce()
       self.emitting = False
       handled = True
     elif event.button == pygame.BUTTON_RIGHT:
-      self.cursor.bounce()
-      self.absorbing = False
+      self.grabbing = False
       handled = True
     elif event.button == pygame.BUTTON_MIDDLE:
       self.wiping = False
       handled = True
 
     return handled
-  
-  def emitRays(self, cursorPosition):
-    # Only have 16 rays maximum at a time.
-    # And only emit so many per time.
-    emitted = 0
-    while len(self.rays) < BouncingDemo.MAXIMUM_RAYS and emitted < BouncingDemo.RAYS_PER_EMIT:
-      self.rays.append(BouncingRay(MAXIMUM_LIFE, cursorPosition, (int(random() * 255), int(random() * 255), int(random() * 255))))
-      emitted += 1
-    return emitted
 
-  def update(self):#, msTimeSinceStart):
-    # First, wipe the buffer, if it was requested.
-    # if self.wiping:
-    self.buffer.wipe()
+  def update(self, **kwargs):
+    if self.wiping:
+      self.scene.fill((0, 0, 0))
 
-    # TODO: Absorb any rays hitting the cursor in absorb 'mode'.
+    cursor = kwargs["cursor"] if "cursor" in kwargs else None
 
-    # TODO: Bounce any existing rays hitting the cursor in bounce 'mode'.
+    if cursor:
+      if self.bouncing:
+        cursor.bounce()
+        # TODO: Bounce any existing rays hitting the cursor in bounce 'mode'.
+      if self.emitting:
+        self.rays.extend(cursor.emitRays(RAYS_PER_EMIT)) # Add more rays...
+        self.rays = self.rays[:MAXIMUM_RAYS] # .. but only allow up to a maximum.
+      if self.grabbing:
+        cursor.grab()
+        # TODO: grab any rays hitting the cursor in grab 'mode'.
 
-    # Emit new rays when the cursor is in emit 'mode'.
-    if self.emitting:
-      if self.emitCoolDown <= 0:
-        emitted = self.emitRays(self.cursor.position.tupled())
-        if 0 < emitted:
-          self.emitCoolDown = BouncingDemo.EMIT_COOLDOWN
-          #print(f"Emitted {emitted} ray(s).")
-      else:
-        self.emitCoolDown -= 1
+      for ray in self.rays:
+        ray.update(self.dimensions.tupled())
 
-    if len(self.rays) != self.lastRayCount:
-      self.lastRayCount = len(self.rays)
-      print(f"Drawing {self.lastRayCount} ray(s)")
+      self.rays = [ray for ray in self.rays if ray.alive()]
 
-    debutTicks = pygame.time.get_ticks()
-    for ray in self.rays:
-      ray.update(space=self.buffer.dimensions)
-      ray.draw(self.buffer)
-    arretTicks = pygame.time.get_ticks()
-    print(f"Took {arretTicks - debutTicks} tick(s) to draw {len(self.rays)} ray(s).")
+      for ray in self.rays:
+        ray.draw(self.scene)
 
-    # Draw the cursor.
-    debutTicks = pygame.time.get_ticks()
-    rendered = self.cursor.render()
-    cursorRect = rendered.get_rect()
-    cursorRect.center = self.cursor.position.tupled() 
-    self.buffer.blit(rendered, cursorRect, special_flags=pygame.BLEND_ALPHA_SDL2)
-    arretTicks = pygame.time.get_ticks()
-    print(f"Took {arretTicks - debutTicks} tick(s) to draw the curosr.")
 
-    self.rays = [ray for ray in self.rays if ray.alive()]
+class BouncingDemo(PyGameApp):
+  def __init__(self):
+    PyGameApp.__init__(self)
+    self.scene = None
+    self.cameraSensor = None
+    self.baseCaption = "Bouncer Demo"
 
-    self.viewer.blit(self.buffer, (0, 0))
+  def onCameraOverlayConfigured(self, cameraOverlay):
+    self.cursor = BouncingCursor(self.camera.overlay, cursorVisible=self.cursorVisible)
 
+  def onCameraSensorConfigured(self, cameraSensor):
+    self.scene = BouncingScene(*cameraSensor.dimensions.tupled())
+    self.cameraSensor = cameraSensor
+
+  def onMouseButtonDown(self, event):
+    return False if not self.scene else self.scene.onMouseButtonDown(event)
+
+  def onMouseButtonUp(self, event):
+    return False if not self.scene else self.scene.onMouseButtonUp(event)
+
+  def update(self):
     PyGameApp.update(self)
 
-  def run(self, windowLength, windowHeight):
-    PyGameApp.run(self, windowLength, windowHeight, False) # Hide the cursor for this demo.
+    rendering = None
+
+    if self.scene:
+      self.scene.update(cursor=self.cursor)
+      rendering = self.scene.render()
+      self.captionSuffix = f" - {len(self.scene.rays)} ray(s)"
+
+    if self.cameraSensor and rendering:
+      self.cameraSensor.displayRendering(rendering, Vertex2(0, 0))
 
