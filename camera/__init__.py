@@ -12,13 +12,13 @@ class Camera(Updated):
     self.sensor = None
 
   def configureViewer(self, length, height, frameRate=60):
-    raise NotImplementedError()
+    pass
 
   def configureOverlay(self, viewer):
-    raise NotImplementedError()
+    pass
 
   def configureSensor(self, length, height, frameRate=60):
-    raise NotImplementedError()
+    pass
 
   def attach(self, component):
     if isinstance(component, CameraViewer):

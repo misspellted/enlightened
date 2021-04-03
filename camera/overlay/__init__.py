@@ -13,10 +13,10 @@ class CameraOverlay(Updated, Dimensioned):
     self.camera = camera
 
   def captureOverlay(self):
-    raise NotImplementedError()
+    pass
 
   def displayRendering(self, rendering, position):
-    raise NotImplementedError()
+    pass
 
   def update(self):
     # print("CameraOverlay::update")

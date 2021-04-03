@@ -81,6 +81,9 @@ class Ray(Living, Moving2, Entity):
     if self.alive():
       self.live(**kwargs)
 
+  def die(self):
+    self.life = 0
+
   def draw(self, surface):
     for segment in self.trail:
       debut = segment.debut.tupled()
@@ -90,7 +93,7 @@ class Ray(Living, Moving2, Entity):
         # aaline(surface, self.rayColor, debut, arret)
       except TypeError as oops:
         print(f"Failed at {debut} -> {arret}: {oops}!")
-        self.life = 0 # Unable to draw, therefore, life is forefeit.
+        self.die() # Unable to draw, therefore, life is forefeit.
         break
 
 
@@ -107,4 +110,7 @@ class BouncingRay(Ray):
 
   def onReflection(self):
     self.bounces -= 1
+
+  def die(self):
+    self.bounces = 0
 

@@ -7,3 +7,6 @@ class Living:
   def live(self, **kwargs):
     pass
 
+  def die(self):
+    pass
+

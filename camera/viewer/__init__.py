@@ -23,13 +23,13 @@ class CameraViewer(Updated, Dimensioned):
     #   handling to do for different sensor|viewer dimensions?
 
   def displayFrame(self, frame):
-    raise NotImplementedError()
+    pass
 
   def displayOverlay(self, overlay):
-    raise NotImplementedError()
+    pass
 
   def refreshView(self):
-    raise NotImplementedError()
+    pass
 
   def update(self):
     # print("CameraViewer::update")

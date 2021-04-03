@@ -25,10 +25,10 @@ class CameraSensor(Updated, Dimensioned):
     pass # Not sure if this is the best name for the method/function/thing.. d^_^b
 
   def captureFrame(self):
-    raise NotImplementedError()
+    pass
 
   def displayRendering(self, rendering, position):
-    raise NotImplementedError()
+    pass
 
   def update(self):
     now = time()
