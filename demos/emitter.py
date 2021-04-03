@@ -108,7 +108,7 @@ class EmittingScene(PyGameScene, Updated):
         # TODO: grab any rays hitting the cursor in grab 'mode'.
 
       for ray in self.rays:
-        ray.update(self.dimensions.tupled())
+        ray.update(space=self.dimensions.tupled())
 
       self.rays = [ray for ray in self.rays if ray.alive()]
 

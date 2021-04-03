@@ -1,8 +1,8 @@
 
 
 # from demos.painter import PaintingDemo as Demo
-from demos.emitter import EmittingDemo as Demo
-# from demos.bouncer import BouncingDemo as Demo
+# from demos.emitter import EmittingDemo as Demo
+from demos.bouncer import BouncingDemo as Demo
 
 
 WINDOW_LENGTH = 640

@@ -10,6 +10,22 @@ class Vertex:
   def copy(self):
     return Vertex(*self.coordinates)
 
+  def __eq__(self, other):
+    equal = isinstance(other, Vertex)
+
+    if equal:
+      # True equality demands equal dimensions.
+      equal = len(self.coordinates) == len(other.coordinates)
+    
+    if equal:
+      for dimension in range(len(self.coordinates)):
+        equal = self.coordinates[dimension] == other.coordinates[dimension]
+
+        if not equal:
+          break
+
+    return equal
+
   # ================================
   # Translation Operations
   # ================================

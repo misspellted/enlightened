@@ -1,21 +1,16 @@
 
 from attributes.rendered import Rendered
-from attributes.updated import Updated
 from demos import PyGameApp, PyGameCursor, DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from demos.emitter import EmittingCursor
-from entities.rays import Ray
+from entities.rays import BouncingRay, RAY_MAXIMUM_BOUNCES
 from geometry.vertices import Vertex2
 import pygame
-from random import random
 from scenes.pygame import PyGameScene
 
 
-RAY_MAXIMUM_BOUNCES = 2
-
-
 # TODO: Have fun with these! Definitely a particle system in this code, lol!
-MAXIMUM_RAYS = 10240
-RAYS_PER_EMIT = MAXIMUM_RAYS >> 3
+MAXIMUM_RAYS = 16
+RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
 EMIT_COOLDOWN = 1 << 3
 
 
@@ -54,21 +49,6 @@ class BRCursor(PyGameCursor, Rendered):
     rendering = pygame.Surface((self.radius * 2, self.radius * 2))
     pygame.draw.circle(rendering, self.color, (self.radius, self.radius), self.radius, 1)
     return rendering
-
-
-class BouncingRay(Ray):
-  def __init__(self, position, bounces):
-    Ray.__init__(self, position, rayColor=(127, 127, 0))
-    # It's life is based on bounces.
-    self.bounces = bounces
-
-  def alive(self):
-    # Ensure life remains neutral.
-    self.life = 0
-    return 0 < self.bounces
-
-  def onReflection(self):
-    self.bounces -= 1
 
 
 class BouncingCursor(EmittingCursor):
@@ -136,7 +116,7 @@ class BouncingScene(PyGameScene):
         # TODO: grab any rays hitting the cursor in grab 'mode'.
 
       for ray in self.rays:
-        ray.update(self.dimensions.tupled())
+        ray.update(space=self.dimensions.tupled())
 
       self.rays = [ray for ray in self.rays if ray.alive()]
 
