@@ -1,7 +1,7 @@
 
 
 from attributes.updated import Updated
-from demos import PyGameApp
+from demos import PyGameApp, DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from geometry.vertices import Vertex2
 import pygame
 from scenes.pygame import PyGameScene
@@ -78,4 +78,14 @@ class PaintingDemo(PyGameApp):
 
     if self.cameraSensor and rendering:
       self.cameraSensor.displayRendering(rendering, Vertex2(0, 0))
+
+
+# This demo can be invoked directly, using the following command while in the
+#   directory of the repository:
+#
+#     python -m demos.painter
+if __name__ == "__main__":
+  demo = PaintingDemo()
+  demo.run(DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT, False)
+  del demo
 

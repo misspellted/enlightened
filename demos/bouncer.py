@@ -1,7 +1,7 @@
 
 from attributes.rendered import Rendered
 from attributes.updated import Updated
-from demos import PyGameApp, PyGameCursor
+from demos import PyGameApp, PyGameCursor, DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from demos.emitter import EmittingCursor
 from entities.rays import Ray
 from geometry.vertices import Vertex2
@@ -10,20 +10,13 @@ from random import random
 from scenes.pygame import PyGameScene
 
 
-RAY_MAXIMUM_LIFE = 2000
 RAY_MAXIMUM_BOUNCES = 2
 
 
-# MAXIMUM_RAYS = 16
-# RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
-# EMIT_COOLDOWN = RAYS_PER_EMIT << 8
 # TODO: Have fun with these! Definitely a particle system in this code, lol!
-MAXIMUM_RAYS = 1024
-RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
-EMIT_COOLDOWN = RAYS_PER_EMIT >> 1
-# MAXIMUM_RAYS = 2
-# RAYS_PER_EMIT = MAXIMUM_RAYS >> 1
-# EMIT_COOLDOWN = RAYS_PER_EMIT << 8
+MAXIMUM_RAYS = 10240
+RAYS_PER_EMIT = MAXIMUM_RAYS >> 3
+EMIT_COOLDOWN = 1 << 3
 
 
 class Buffer(pygame.Surface):
@@ -183,4 +176,14 @@ class BouncingDemo(PyGameApp):
 
     if self.cameraSensor and rendering:
       self.cameraSensor.displayRendering(rendering, Vertex2(0, 0))
+
+
+# This demo can be invoked directly, using the following command while in the
+#   directory of the repository:
+#
+#     python -m demos.bouncer
+if __name__ == "__main__":
+  demo = BouncingDemo()
+  demo.run(DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT, False)
+  del demo
 

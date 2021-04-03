@@ -10,6 +10,12 @@ import pygame
 from time import time
 
 
+DEMO_WINDOW_LENGTH = 640
+DEMO_WINDOW_HEIGHT = 480
+# DEMO_WINDOW_LENGTH = 1280
+# DEMO_WINDOW_HEIGHT = 720
+
+
 # Selected portions borrowed from
 # https://github.com/misspellted/viewted/blob/main/application/__init__.py
 # (Intent is to either absorb enlighted into viewted, or vice versa.)
