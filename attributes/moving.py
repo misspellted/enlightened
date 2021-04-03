@@ -1,12 +1,11 @@
 
 
-from attributes.positioned import Positioned
-from attributes.accelerated import Accelerated
-from geometry.vertices import Vertex2
+from geometry.vertices import Vertex
 
 
-class Moving2(Positioned, Accelerated):
-  def __init__(self, position, velocity):
-    Positioned.__init__(self, Vertex2(*position))
-    Accelerated.__init__(self, Vertex2(*velocity))
+class Moving:
+  def __init__(self, velocity):
+    if not isinstance(velocity, Vertex):
+      raise TypeError("Expected 'velocity' to be an instance of Vertex!")
+    self.velocity = velocity
 

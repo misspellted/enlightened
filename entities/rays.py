@@ -1,7 +1,8 @@
 
 
+from attributes.moving import Moving
 from attributes.living import Living
-from attributes.moving import Moving2
+from attributes.positioned import Positioned
 from entities import Entity
 from geometry.lines import Segment
 from pygame.draw import line as aline, aaline
@@ -28,9 +29,10 @@ def reflect(lower, current, modifier, upper):
   return (next, modified)
 
 
-class Ray(Living, Moving2, Entity):
-  def __init__(self, position, rayColor=None, trailLength=RAY_TRAIL_LENGTH):
-    Moving2.__init__(self, position, (random() - 0.5, random() - 0.5))
+class Ray(Positioned, Moving, Living, Entity):
+  def __init__(self, position, velocity, rayColor=None, trailLength=RAY_TRAIL_LENGTH):
+    Positioned.__init__(self, position)
+    Moving.__init__(self, velocity)
     
     self.lastPosition = None
     self.rayColor = rayColor if rayColor else (int(random() * 255), int(random() * 255), int(random() * 255))
@@ -98,8 +100,8 @@ class Ray(Living, Moving2, Entity):
 
 
 class BouncingRay(Ray):
-  def __init__(self, position, bounces, trailLength=RAY_TRAIL_LENGTH):
-    Ray.__init__(self, position, rayColor=(127, 127, 0), trailLength=trailLength)
+  def __init__(self, position, velocity, bounces, trailLength=RAY_TRAIL_LENGTH):
+    Ray.__init__(self, position, velocity, rayColor=(127, 127, 0), trailLength=trailLength)
     # It's life is based on bounces.
     self.bounces = bounces
 

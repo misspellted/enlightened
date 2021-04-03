@@ -5,6 +5,7 @@ from demos import PyGameApp, PyGameCursor, DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGH
 from entities.rays import Ray
 from geometry.vertices import Vertex2
 import pygame
+from random import random
 from scenes.pygame import PyGameScene
 
 
@@ -28,7 +29,7 @@ class EmittingCursor(PyGameCursor):
     self.color = EmittingCursor.COLOR_BOUNCING
 
   def emitRay(self):
-    return Ray(self.position.tupled())
+    return Ray(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5))
 
   def emitRays(self, raysPerEmit):
     # Use the cursor to indicate the 'emit' mode.

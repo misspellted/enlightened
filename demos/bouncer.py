@@ -5,6 +5,7 @@ from demos.emitter import EmittingCursor
 from entities.rays import BouncingRay, RAY_MAXIMUM_BOUNCES
 from geometry.vertices import Vertex2
 import pygame
+from random import random
 from scenes.pygame import PyGameScene
 
 
@@ -14,49 +15,12 @@ RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
 EMIT_COOLDOWN = 1 << 3
 
 
-class Buffer(pygame.Surface):
-  def __init__(self, length, height):
-    pygame.Surface.__init__(self, (length, height))
-
-  @property
-  def dimensions(self):
-    return self.get_size()
-
-  def wipe(self, color=(0, 0, 0)):
-    self.fill(color)
-
-
-class BRCursor(PyGameCursor, Rendered):
-  COLOR_BOUNCE = (0, 0, 127)
-  COLOR_GRAB = (0, 127, 0)
-  COLOR_EMIT = (127, 0, 0)
-
-  def __init__(self, radius):
-    PyGameCursor.__init__(self)
-    self.radius = radius
-    self.bounce()
-
-  def bounce(self):
-    self.color = BRCursor.COLOR_BOUNCE
-
-  def emit(self):
-    self.color = BRCursor.COLOR_EMIT
-
-  def grab(self):
-    self.color = BRCursor.COLOR_GRAB
-
-  def render(self):
-    rendering = pygame.Surface((self.radius * 2, self.radius * 2))
-    pygame.draw.circle(rendering, self.color, (self.radius, self.radius), self.radius, 1)
-    return rendering
-
-
 class BouncingCursor(EmittingCursor):
   def __init__(self, cameraOverlay, radius=20, cursorVisible=True):
     EmittingCursor.__init__(self, cameraOverlay, radius=radius, cursorVisible=cursorVisible)
 
   def emitRay(self):
-    return BouncingRay(self.position.tupled(), RAY_MAXIMUM_BOUNCES)
+    return BouncingRay(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5), RAY_MAXIMUM_BOUNCES)
 
 
 class BouncingScene(PyGameScene):
