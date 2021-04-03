@@ -1,5 +1,5 @@
 
-from demos.painting import PaintingDemo as Demo
+from demos.painter import PaintingDemo as Demo
 # from demos.emitter import EmittingDemo as Demo
 # from demos.bouncer import BouncingDemo as Demo
 

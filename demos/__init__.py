@@ -72,6 +72,7 @@ class PyGameApp(Application):
     self.updates = 0
     self.baseCaption = None
     self.captionSuffix = None
+    self.cursorVisible = False
 
   def update(self):
     self.updates += 1
@@ -91,6 +92,9 @@ class PyGameApp(Application):
   def onCameraViewerConfigured(self, cameraViewer):
     pass # Do nothing by default.
 
+  def onCameraOverlayConfigured(self, cameraOverlay):
+    self.cursor = PyGameCursor(self.camera.overlay, cursorVisible=self.cursorVisible)
+
   def onCameraSensorConfigured(self, cameraSensor):
     pass # Do nothing by default.
 
@@ -98,9 +102,10 @@ class PyGameApp(Application):
     # For now, we'll just configure the sensor and the viewer to be the same dimensions.
     self.camera.configureViewer(windowLength, windowHeight) # An overlay is automatically configured.
     self.onCameraViewerConfigured(self.camera.viewer)
+    self.onCameraOverlayConfigured(self.camera.overlay)
     self.camera.configureSensor(windowLength, windowHeight)
     self.onCameraSensorConfigured(self.camera.sensor)
-    self.cursor = PyGameCursor(self.camera.overlay, cursorVisible=cursorVisible)
+    self.cursorVisible = cursorVisible
     Application.run(self)
 
   def onMouseMotion(self, event):
