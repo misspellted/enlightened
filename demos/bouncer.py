@@ -2,7 +2,7 @@
 from attributes.rendered import Rendered
 from demos import PyGameApp, PyGameCursor, DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from demos.emitter import EmittingCursor
-from entities.rays import BouncingRay, RAY_MAXIMUM_BOUNCES
+from entities.rays import Ray
 from geometry.vertices import Vertex2
 import pygame
 from random import random
@@ -20,7 +20,7 @@ class BouncingCursor(EmittingCursor):
     EmittingCursor.__init__(self, cameraOverlay, radius=radius, cursorVisible=cursorVisible)
 
   def emitRay(self):
-    return BouncingRay(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5), RAY_MAXIMUM_BOUNCES)
+    return Ray(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5), rayColor=(127, 127, 0))
 
 
 class BouncingScene(PyGameScene):

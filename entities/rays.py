@@ -9,8 +9,7 @@ from pygame.draw import line as aline, aaline
 from random import random
 
 
-RAY_MAXIMUM_BOUNCES = 4
-RAY_MAXIMUM_LIFE = 2000
+RAY_BOUNCES = 4
 RAY_TRAIL_LENGTH = 500
 
 
@@ -36,16 +35,15 @@ class Ray(Positioned, Moving, Living, Entity):
     
     self.lastPosition = None
     self.rayColor = rayColor if rayColor else (int(random() * 255), int(random() * 255), int(random() * 255))
-    self.life = int(random() * RAY_MAXIMUM_LIFE)
-    # self.life = RAY_MAXIMUM_LIFE
+    self.bounces = RAY_BOUNCES
     self.trail = list()
     self.trailLength = trailLength if 0 <= trailLength <= RAY_TRAIL_LENGTH else MAXIMUM_TRAIL_LENGTH
 
   def alive(self):
-    return 0 < self.life
+    return 0 < self.bounces
 
   def onReflection(self):
-    pass # Do nothing, for now.
+    self.bounces -= 1
 
   def live(self, **kwargs):
     space = kwargs["space"] if "space" in kwargs else None
@@ -74,7 +72,6 @@ class Ray(Positioned, Moving, Living, Entity):
       self.position.y = py
       self.velocity.x = vx
       self.velocity.y = vy
-      self.life -= 1
       
       # Add the latest segement.
       self.trail.append(Segment(self.lastPosition, self.position))
@@ -84,7 +81,7 @@ class Ray(Positioned, Moving, Living, Entity):
       self.live(**kwargs)
 
   def die(self):
-    self.life = 0
+    self.bounces = 0
 
   def draw(self, surface):
     for segment in self.trail:
@@ -97,22 +94,4 @@ class Ray(Positioned, Moving, Living, Entity):
         print(f"Failed at {debut} -> {arret}: {oops}!")
         self.die() # Unable to draw, therefore, life is forefeit.
         break
-
-
-class BouncingRay(Ray):
-  def __init__(self, position, velocity, bounces, trailLength=RAY_TRAIL_LENGTH):
-    Ray.__init__(self, position, velocity, rayColor=(127, 127, 0), trailLength=trailLength)
-    # It's life is based on bounces.
-    self.bounces = bounces
-
-  def alive(self):
-    # Ensure life remains neutral.
-    self.life = 0
-    return 0 < self.bounces
-
-  def onReflection(self):
-    self.bounces -= 1
-
-  def die(self):
-    self.bounces = 0
 
