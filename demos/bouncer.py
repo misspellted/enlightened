@@ -1,7 +1,7 @@
 
-
-from attributes.updated import Updated
+from attributes.rendered import Rendered
 from demos import PyGameApp, PyGameCursor, DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
+from demos.emitter import EmittingCursor
 from entities.rays import Ray
 from geometry.vertices import Vertex2
 import pygame
@@ -10,49 +10,20 @@ from scenes.pygame import PyGameScene
 
 
 # TODO: Have fun with these! Definitely a particle system in this code, lol!
-MAXIMUM_RAYS = 10240
-RAYS_PER_EMIT = MAXIMUM_RAYS >> 3
+MAXIMUM_RAYS = 16
+RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
 EMIT_COOLDOWN = 1 << 3
 
 
-class EmittingCursor(PyGameCursor):
-  COLOR_EMITTING = (127, 0, 0) # 'R' for ... ?
-  COLOR_GRABBING = (0, 127, 0) # 'G' for grab!
-  COLOR_BOUNCING = (0, 0, 127) # 'B' for blue!
-
+class BouncingCursor(EmittingCursor):
   def __init__(self, cameraOverlay, radius=20, cursorVisible=True):
-    PyGameCursor.__init__(self, cameraOverlay, radius=radius, cursorVisible=cursorVisible)
-    self.emitCoolDown = 0
-
-  def bounce(self):
-    # Use the cursor to indicate the 'bounce' mode.
-    self.color = EmittingCursor.COLOR_BOUNCING
+    EmittingCursor.__init__(self, cameraOverlay, radius=radius, cursorVisible=cursorVisible)
 
   def emitRay(self):
-    return Ray(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5))
-
-  def emitRays(self, raysPerEmit):
-    # Use the cursor to indicate the 'emit' mode.
-    self.color = EmittingCursor.COLOR_EMITTING
-    emitted = list()
-    # Generate a bunch of rays at the current position.
-    if self.emitCoolDown <= 0:
-      while len(emitted) < raysPerEmit:
-        emitted.append(self.emitRay())
-      self.emitCoolDown = EMIT_COOLDOWN
-    return emitted
-
-  def grab(self):
-    # Use the cursor to indicate the 'grab' mode.
-    self.color = EmittingCursor.COLOR_GRABBING
-
-  def update(self):
-    PyGameCursor.update(self)
-    if 0 < self.emitCoolDown:
-      self.emitCoolDown -= 1
+    return Ray(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5), rayColor=(127, 127, 0))
 
 
-class EmittingScene(PyGameScene, Updated):
+class BouncingScene(PyGameScene):
   def __init__(self, length, height):
     PyGameScene.__init__(self, length, height)
     self.bouncing = True
@@ -117,18 +88,18 @@ class EmittingScene(PyGameScene, Updated):
         ray.draw(self.scene)
 
 
-class EmittingDemo(PyGameApp):
+class BouncingDemo(PyGameApp):
   def __init__(self):
     PyGameApp.__init__(self)
     self.scene = None
     self.cameraSensor = None
-    self.baseCaption = "Emitter Demo"
+    self.baseCaption = "Bouncer Demo"
 
   def onCameraOverlayConfigured(self, cameraOverlay):
-    self.cursor = EmittingCursor(self.camera.overlay, cursorVisible=self.cursorVisible)
+    self.cursor = BouncingCursor(self.camera.overlay, cursorVisible=self.cursorVisible)
 
   def onCameraSensorConfigured(self, cameraSensor):
-    self.scene = EmittingScene(*cameraSensor.dimensions.tupled())
+    self.scene = BouncingScene(*cameraSensor.dimensions.tupled())
     self.cameraSensor = cameraSensor
 
   def onMouseButtonDown(self, event):
@@ -154,9 +125,9 @@ class EmittingDemo(PyGameApp):
 # This demo can be invoked directly, using the following command while in the
 #   directory of the repository:
 #
-#     python -m demos.emitter
+#     python -m demos.bouncer
 if __name__ == "__main__":
-  demo = EmittingDemo()
+  demo = BouncingDemo()
   demo.run(DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT, False)
   del demo
 
