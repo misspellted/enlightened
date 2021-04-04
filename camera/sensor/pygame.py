@@ -12,7 +12,6 @@ class PyGameCameraSensor(CameraSensor):
     self.sensor = Surface(self.dimensions.tupled())
 
   def captureFrame(self):
-    # print("PyGameCameraSensor::captureFrame")
     # Copy the sensor data as a frame.
     frame = self.sensor.copy()
 

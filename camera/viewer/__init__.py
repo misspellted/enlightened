@@ -32,7 +32,6 @@ class CameraViewer(Updated, Dimensioned):
     pass
 
   def update(self):
-    # print("CameraViewer::update")
     now = time()
 
     self.msAccumulatedTime += (now - self.lastTime)

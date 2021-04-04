@@ -41,7 +41,6 @@ class Camera(Updated):
       self.viewer.displayOverlay(overlay)
 
   def update(self):
-    # print("Camera::update")
     if self.sensor:
       self.sensor.update()
 

@@ -19,7 +19,6 @@ class CameraOverlay(Updated, Dimensioned):
     pass
 
   def update(self):
-    # print("CameraOverlay::update")
     # Always capture an overlay.
     self.camera.onOverlayGenerated(self.captureOverlay())
 

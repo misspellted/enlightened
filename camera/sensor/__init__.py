@@ -36,8 +36,6 @@ class CameraSensor(Updated, Dimensioned):
     self.msAccumulatedTime += (now - self.lastTime)
     self.lastTime = now
 
-    # print(f"CameraSensor::update | {self.msTargetFrameTime} vs {self.msAccumulatedTime}")
-
     if self.msTargetFrameTime <= self.msAccumulatedTime:
       if self.msTargetFrameTime == 0:
         self.msAccumulatedTime = 0

@@ -22,6 +22,5 @@ class PyGameCameraViewer(CameraViewer):
     self.viewer.blit(overlay, (0, 0), special_flags=BLEND_RGB_ADD)
 
   def refreshView(self):
-    # print("PyGameCameraViewer::refreshView")
     flip()
 
