@@ -3,7 +3,6 @@
 from attributes.dimensioned import Dimensioned
 from attributes.updated import Updated
 from geometry.vertices import Vertex2
-from time import time
 
 
 class CameraSensor(Updated, Dimensioned):
@@ -15,7 +14,6 @@ class CameraSensor(Updated, Dimensioned):
     self.targetFrameRate = frameRate
     self.msTargetFrameTime = 0 if frameRate <= 0 else (1 / frameRate)
     self.msAccumulatedTime = 0
-    self.lastTime = time()
     self.camera = None
 
   def onAttachment(self, camera):
@@ -30,11 +28,10 @@ class CameraSensor(Updated, Dimensioned):
   def displayRendering(self, rendering, position):
     pass
 
-  def update(self):
-    now = time()
+  def update(self, **kwargs):
+    deltaTime = kwargs["deltaTime"] if "deltaTime" in kwargs else 0
 
-    self.msAccumulatedTime += (now - self.lastTime)
-    self.lastTime = now
+    self.msAccumulatedTime += deltaTime
 
     if self.msTargetFrameTime <= self.msAccumulatedTime:
       if self.msTargetFrameTime == 0:

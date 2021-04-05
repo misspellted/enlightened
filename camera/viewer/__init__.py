@@ -3,7 +3,6 @@
 from attributes.dimensioned import Dimensioned
 from attributes.updated import Updated
 from geometry.vertices import Vertex2
-from time import time
 
 
 class CameraViewer(Updated, Dimensioned):
@@ -15,7 +14,6 @@ class CameraViewer(Updated, Dimensioned):
     self.targetFrameRate = frameRate
     self.msTargetFrameTime = 0 if frameRate <= 0 else (1 / frameRate)
     self.msAccumulatedTime = 0
-    self.lastTime = time()
 
   def onAttachment(self, camera):
     pass # Do nothing... for now.
@@ -31,11 +29,10 @@ class CameraViewer(Updated, Dimensioned):
   def refreshView(self):
     pass
 
-  def update(self):
-    now = time()
+  def update(self, **kwargs):
+    deltaTime = kwargs["deltaTime"] if "deltaTime" in kwargs else 0
 
-    self.msAccumulatedTime += (now - self.lastTime)
-    self.lastTime = now
+    self.msAccumulatedTime += deltaTime
 
     if self.msTargetFrameTime <= self.msAccumulatedTime:
       if self.msTargetFrameTime == 0:

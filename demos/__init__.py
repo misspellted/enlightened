@@ -53,7 +53,7 @@ class PyGameCursor(Positioned, Rendered, Updated):
     Positioned.__init__(self, Vertex2(0, 0))
     Dimensioned.__init__(self, Vertex2(radius * 2, radius * 2))
     self.radius = radius
-    self.color = (127, 127, 127)
+    self.color = (191, 191, 191)
     pygame.mouse.set_visible(cursorVisible)
 
   def onCursorPositioned(self, position):
