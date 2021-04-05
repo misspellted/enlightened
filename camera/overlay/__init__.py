@@ -18,7 +18,7 @@ class CameraOverlay(Updated, Dimensioned):
   def displayRendering(self, rendering, position):
     pass
 
-  def update(self):
+  def update(self, **kwargs):
     # Always capture an overlay.
     self.camera.onOverlayGenerated(self.captureOverlay())
 
