@@ -1,6 +1,6 @@
 
 
-from camera import Camera
+from camera import Camera, DEFAULT_FRAME_RATE
 from camera.sensor.pygame import PyGameCameraSensor
 from camera.overlay.pygame import PyGameCameraOverlay
 from camera.viewer.pygame import PyGameCameraViewer
@@ -8,8 +8,8 @@ import pygame
 
 
 class PyGameCamera(Camera):
-  def __init__(self):
-    Camera.__init__(self)
+  def __init__(self, environmentTimer, frameRate=DEFAULT_FRAME_RATE):
+    Camera.__init__(self, environmentTimer, frameRate)
     pygame.init()
 
   def configureOverlay(self, viewer):

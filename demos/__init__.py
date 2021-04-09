@@ -7,7 +7,8 @@ from attributes.updated import Updated
 from camera.pygame import PyGameCamera
 from geometry.vertices import Vertex2
 import pygame
-from time import time
+from timers.pygame import PyGameMilliseconds
+from timers.python import PythonSeconds, PythonNanoseconds
 
 
 DEMO_WINDOW_LENGTH = 640
@@ -73,7 +74,10 @@ class PyGameCursor(Positioned, Rendered, Updated):
 class PyGameApp(Application):
   def __init__(self):
     Application.__init__(self)
-    self.camera = PyGameCamera()
+    # self.timer = PythonSeconds()
+    self.timer = PyGameMilliseconds()
+    # self.timer = PythonNanoseconds()
+    self.camera = PyGameCamera(self.timer)
     self.cursor = None
     self.updates = 0
     self.baseCaption = None

@@ -24,8 +24,8 @@ class BouncingCursor(EmittingCursor):
 
 
 class BouncingScene(PyGameScene):
-  def __init__(self, length, height):
-    PyGameScene.__init__(self, length, height)
+  def __init__(self, timer, length, height):
+    PyGameScene.__init__(self, timer, length, height)
     self.bouncing = True
     self.emitting = False
     self.grabbing = False
@@ -80,7 +80,7 @@ class BouncingScene(PyGameScene):
         # TODO: grab any rays hitting the cursor in grab 'mode'.
 
       for ray in self.rays:
-        ray.update(space=self.dimensions.tupled())
+        ray.update(**kwargs, environment=self)
 
       self.rays = [ray for ray in self.rays if ray.alive()]
 
@@ -99,7 +99,8 @@ class BouncingDemo(PyGameApp):
     self.cursor = BouncingCursor(self.camera.overlay, cursorVisible=self.cursorVisible)
 
   def onCameraSensorConfigured(self, cameraSensor):
-    self.scene = BouncingScene(*cameraSensor.dimensions.tupled())
+    length, height = cameraSensor.dimensions.tupled()
+    self.scene = BouncingScene(self.timer, length, height)
     self.cameraSensor = cameraSensor
 
   def onMouseButtonDown(self, event):

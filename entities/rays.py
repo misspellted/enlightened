@@ -1,7 +1,6 @@
 
 
 from attributes.moving import Moving
-from attributes.living import Living
 from attributes.positioned import Positioned
 from entities import Entity
 from geometry.lines import Segment
@@ -28,7 +27,7 @@ def reflect(lower, current, modifier, upper):
   return (next, modified)
 
 
-class Ray(Positioned, Moving, Living, Entity):
+class Ray(Positioned, Moving, Entity):
   def __init__(self, position, velocity, rayColor=None, trailLength=RAY_TRAIL_LENGTH):
     Positioned.__init__(self, position)
     Moving.__init__(self, velocity)
@@ -46,9 +45,10 @@ class Ray(Positioned, Moving, Living, Entity):
     self.bounces -= 1
 
   def live(self, **kwargs):
-    space = kwargs["space"] if "space" in kwargs else None
+    environment = kwargs["environment"] if "environment" in kwargs else None
 
-    if space:
+    if environment:
+      length, height = environment.dimensions.tupled()
       # Track only the last few positions.
       self.trail = self.trail[:-(self.trailLength - 1)]
 
@@ -56,8 +56,8 @@ class Ray(Positioned, Moving, Living, Entity):
       lastVelocity = self.velocity
 
       # Reflect the ray if necessary.
-      px, vx = reflect(0, self.position.x, self.velocity.x, space[0])
-      py, vy = reflect(0, self.position.y, self.velocity.y, space[1])
+      px, vx = reflect(0, self.position.x, self.velocity.x, length)
+      py, vy = reflect(0, self.position.y, self.velocity.y, height)
 
       if self.velocity.x != vx or self.velocity.y != vy:
         self.onReflection()

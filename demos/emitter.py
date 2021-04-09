@@ -53,8 +53,8 @@ class EmittingCursor(PyGameCursor):
 
 
 class EmittingScene(PyGameScene, Updated):
-  def __init__(self, length, height):
-    PyGameScene.__init__(self, length, height)
+  def __init__(self, timer, length, height):
+    PyGameScene.__init__(self, timer, length, height)
     self.bouncing = True
     self.emitting = False
     self.grabbing = False
@@ -109,7 +109,7 @@ class EmittingScene(PyGameScene, Updated):
         # TODO: grab any rays hitting the cursor in grab 'mode'.
 
       for ray in self.rays:
-        ray.update(space=self.dimensions.tupled())
+        ray.update(**kwargs, environment=self)
 
       self.rays = [ray for ray in self.rays if ray.alive()]
 
@@ -128,7 +128,8 @@ class EmittingDemo(PyGameApp):
     self.cursor = EmittingCursor(self.camera.overlay, cursorVisible=self.cursorVisible)
 
   def onCameraSensorConfigured(self, cameraSensor):
-    self.scene = EmittingScene(*cameraSensor.dimensions.tupled())
+    length, height = cameraSensor.dimensions.tupled()
+    self.scene = EmittingScene(self.timer, length, height)
     self.cameraSensor = cameraSensor
 
   def onMouseButtonDown(self, event):

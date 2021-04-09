@@ -3,7 +3,6 @@
 from attributes.updated import Updated
 from camera.overlay import CameraOverlay
 from camera.sensor import CameraSensor
-from camera.timers import CameraTimer
 from camera.viewer import CameraViewer
 
 
@@ -11,10 +10,11 @@ DEFAULT_FRAME_RATE = 60
 
 
 class Camera(Updated):
-  def __init__(self, frameRate=DEFAULT_FRAME_RATE):
+  def __init__(self, timer, frameRate=DEFAULT_FRAME_RATE):
     self.targetFrameRate = frameRate
-    self.timer = CameraTimer()
-    self.msTargetFrameTime = self.timer.calculateFrameTime(frameRate)
+    self.timer = timer
+    self.msTargetFrameTime = 0 if frameRate <= 0 else (timer.scalor / frameRate)
+    # print(f"Timer scalor: {timer.scalor} -> target frame time: {self.msTargetFrameTime}")
     self.msAccumulatedTime = 0
     self.viewer = None
     self.overlay = None
@@ -53,6 +53,7 @@ class Camera(Updated):
   def update(self):
     now = self.timer.getTime()
     deltaTime = now - self.lastTime
+    # print(f"deltaTime: {deltaTime}")
     self.lastTime = now
 
     if self.sensor:

@@ -8,8 +8,8 @@ from scenes.pygame import PyGameScene
 
 
 class PaintingScene(PyGameScene, Updated):
-  def __init__(self, length, height):
-    PyGameScene.__init__(self, length, height)
+  def __init__(self, timer, length, height):
+    PyGameScene.__init__(self, timer, length, height)
     self.painting = False
     self.paintColor = (127, 0, 0)
     self.erasing = False
@@ -58,7 +58,8 @@ class PaintingDemo(PyGameApp):
     self.cameraSensor = None
 
   def onCameraSensorConfigured(self, cameraSensor):
-    self.scene = PaintingScene(*cameraSensor.dimensions.tupled())
+    length, height = cameraSensor.dimensions.tupled()
+    self.scene = PaintingScene(self.timer, length, height)
     self.cameraSensor = cameraSensor
 
   def onMouseButtonDown(self, event):
