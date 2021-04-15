@@ -12,8 +12,8 @@ class CameraSensor(Updated, Dimensioned):
 
     Dimensioned.__init__(self, Vertex2(length, height))
     self.targetFrameRate = frameRate
-    self.msTargetFrameTime = 0 if frameRate <= 0 else (1 / frameRate)
-    self.msAccumulatedTime = 0
+    self.targetFrameTime = 0 if frameRate <= 0 else (1 / frameRate)
+    self.accumulatedTime = 0
     self.camera = None
 
   def onAttachment(self, camera):
@@ -31,13 +31,13 @@ class CameraSensor(Updated, Dimensioned):
   def update(self, **kwargs):
     deltaTime = kwargs["deltaTime"] if "deltaTime" in kwargs else 0
 
-    self.msAccumulatedTime += deltaTime
+    self.accumulatedTime += deltaTime
 
-    if self.msTargetFrameTime <= self.msAccumulatedTime:
-      if self.msTargetFrameTime == 0:
-        self.msAccumulatedTime = 0
+    if self.targetFrameTime <= self.accumulatedTime:
+      if self.targetFrameTime == 0:
+        self.accumulatedTime = 0
       else:
-        self.msAccumulatedTime -= self.msTargetFrameTime
+        self.accumulatedTime -= self.targetFrameTime
 
       # Send the captured frame.
       self.camera.onFrameCaptured(self.captureFrame())

@@ -39,12 +39,15 @@ class Ray(Positioned, Moving, Entity):
     self.trailLength = trailLength if 0 <= trailLength <= RAY_TRAIL_LENGTH else MAXIMUM_TRAIL_LENGTH
 
   def alive(self):
-    return 0 < self.bounces
+    return 0 <= self.bounces
+
+  def die(self):
+    self.bounces = -1
 
   def onReflection(self):
     self.bounces -= 1
 
-  def live(self, **kwargs):
+  def update(self, **kwargs):
     environment = kwargs["environment"] if "environment" in kwargs else None
 
     if environment:
@@ -53,7 +56,9 @@ class Ray(Positioned, Moving, Entity):
       self.trail = self.trail[:-(self.trailLength - 1)]
 
       self.lastPosition = self.position
-      lastVelocity = self.velocity
+
+      # Project the ray's future position.
+      # projected = self.projectBy(self.velocity)
 
       # Reflect the ray if necessary.
       px, vx = reflect(0, self.position.x, self.velocity.x, length)
@@ -61,6 +66,12 @@ class Ray(Positioned, Moving, Entity):
 
       if self.velocity.x != vx or self.velocity.y != vy:
         self.onReflection()
+
+      if self.velocity.x != vx:
+        self.velocity.x *= -1
+
+      if self.velocity.y != vy:
+        self.velocity.y *= -1
 
       # TODO: Use perception (do a perception check! lol) to determine
       # near-by entities that might cause interfere with the projection.
@@ -70,18 +81,9 @@ class Ray(Positioned, Moving, Entity):
 
       self.position.x = px
       self.position.y = py
-      self.velocity.x = vx
-      self.velocity.y = vy
       
       # Add the latest segement.
       self.trail.append(Segment(self.lastPosition, self.position))
-
-  def update(self, **kwargs):
-    if self.alive():
-      self.live(**kwargs)
-
-  def die(self):
-    self.bounces = 0
 
   def draw(self, surface):
     for segment in self.trail:

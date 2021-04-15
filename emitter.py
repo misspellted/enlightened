@@ -1,9 +1,11 @@
 
 
-from attributes.updated import Updated
-from demos import PyGameApp, PyGameCursor, DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
+from applications.pygame import PyGameApplication
+from cursors.pygame import PyGameCursor
+from defaults import DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from entities.rays import Ray
 from geometry.vertices import Vertex2
+from math import cos, sin, pi
 import pygame
 from random import random
 from scenes.pygame import PyGameScene
@@ -20,8 +22,8 @@ class EmittingCursor(PyGameCursor):
   COLOR_GRABBING = (0, 127, 0) # 'G' for grab!
   COLOR_BOUNCING = (0, 0, 127) # 'B' for blue!
 
-  def __init__(self, cameraOverlay, radius=20, cursorVisible=True):
-    PyGameCursor.__init__(self, cameraOverlay, radius=radius, cursorVisible=cursorVisible)
+  def __init__(self, cameraOverlay, radius=20, mouseVisible=True):
+    PyGameCursor.__init__(self, cameraOverlay, radius=radius, mouseVisible=mouseVisible)
     self.emitCoolDown = 0
 
   def bounce(self):
@@ -46,13 +48,13 @@ class EmittingCursor(PyGameCursor):
     # Use the cursor to indicate the 'grab' mode.
     self.color = EmittingCursor.COLOR_GRABBING
 
-  def update(self):
-    PyGameCursor.update(self)
+  def update(self, **kwargs):
+    PyGameCursor.update(self, **kwargs)
     if 0 < self.emitCoolDown:
       self.emitCoolDown -= 1
 
 
-class EmittingScene(PyGameScene, Updated):
+class EmittingScene(PyGameScene):
   def __init__(self, timer, length, height):
     PyGameScene.__init__(self, timer, length, height)
     self.bouncing = True
@@ -61,31 +63,31 @@ class EmittingScene(PyGameScene, Updated):
     self.wiping = False
     self.rays = list()
 
-  def onMouseButtonDown(self, event):
+  def onMouseButtonPressed(self, button):
     handled = False
 
-    if event.button == pygame.BUTTON_LEFT:
+    if button == pygame.BUTTON_LEFT:
       self.emitting = True
       handled = True
-    elif event.button == pygame.BUTTON_RIGHT:
+    elif button == pygame.BUTTON_RIGHT:
       self.grabbing = True
       handled = True
-    elif event.button == pygame.BUTTON_MIDDLE:
+    elif button == pygame.BUTTON_MIDDLE:
       self.wiping = True
       handled = True
 
     return handled
 
-  def onMouseButtonUp(self, event):
+  def onMouseButtonReleased(self, button):
     handled = False
 
-    if event.button == pygame.BUTTON_LEFT:
+    if button == pygame.BUTTON_LEFT:
       self.emitting = False
       handled = True
-    elif event.button == pygame.BUTTON_RIGHT:
+    elif button == pygame.BUTTON_RIGHT:
       self.grabbing = False
       handled = True
-    elif event.button == pygame.BUTTON_MIDDLE:
+    elif button == pygame.BUTTON_MIDDLE:
       self.wiping = False
       handled = True
 
@@ -108,56 +110,25 @@ class EmittingScene(PyGameScene, Updated):
         cursor.grab()
         # TODO: grab any rays hitting the cursor in grab 'mode'.
 
-      for ray in self.rays:
-        ray.update(**kwargs, environment=self)
+    for ray in self.rays:
+      ray.update(**kwargs, environment=self)
 
-      self.rays = [ray for ray in self.rays if ray.alive()]
+    self.rays = [ray for ray in self.rays if ray.alive()]
 
-      for ray in self.rays:
-        ray.draw(self.scene)
-
-
-class EmittingDemo(PyGameApp):
-  def __init__(self):
-    PyGameApp.__init__(self)
-    self.scene = None
-    self.cameraSensor = None
-    self.baseCaption = "Emitter Demo"
-
-  def onCameraOverlayConfigured(self, cameraOverlay):
-    self.cursor = EmittingCursor(self.camera.overlay, cursorVisible=self.cursorVisible)
-
-  def onCameraSensorConfigured(self, cameraSensor):
-    length, height = cameraSensor.dimensions.tupled()
-    self.scene = EmittingScene(self.timer, length, height)
-    self.cameraSensor = cameraSensor
-
-  def onMouseButtonDown(self, event):
-    return False if not self.scene else self.scene.onMouseButtonDown(event)
-
-  def onMouseButtonUp(self, event):
-    return False if not self.scene else self.scene.onMouseButtonUp(event)
-
-  def update(self):
-    PyGameApp.update(self)
-
-    rendering = None
-
-    if self.scene:
-      self.scene.update(cursor=self.cursor)
-      rendering = self.scene.render()
-      self.captionSuffix = f" - {len(self.scene.rays)} ray(s)"
-
-    if self.cameraSensor and rendering:
-      self.cameraSensor.displayRendering(rendering, Vertex2(0, 0))
+    for ray in self.rays:
+      ray.draw(self.scene)
 
 
-# This demo can be invoked directly, using the following command while in the
-#   directory of the repository:
-#
-#     python -m demos.emitter
+class EmittingDemo(PyGameApplication):
+  def __init__(self, length, height, mouseVisible=True):
+    PyGameApplication.__init__(self, length, height, mouseVisible=mouseVisible)
+    self.setCursor(EmittingCursor(self.camera.overlay, mouseVisible=mouseVisible))
+    self.setEnvironment(EmittingScene(self.timer, length, height))
+    self.captionWindow("Emitter Demo")
+
+
 if __name__ == "__main__":
-  demo = EmittingDemo()
-  demo.run(DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT, False)
+  demo = EmittingDemo(DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT, False)
+  demo.run()
   del demo
 

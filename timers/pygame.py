@@ -1,13 +1,13 @@
 
 
 from pygame.time import get_ticks
-from timers import Timer, TimeIntervals
+from timers import Timer
 
 
 class PyGameMilliseconds(Timer):
   def __init__(self):
-    Timer.__init__(self, TimeIntervals.MILLISECOND)
+    Timer.__init__(self)
 
-  def getTime(self):
-    return get_ticks()
+  def sTime(self):
+    return get_ticks() / 1000
 
