@@ -1,18 +1,21 @@
 
 
 from attributes.updated import Updated
+from measurements import Measurement
+from time import time
+from units.time import Seconds
 
 
 class Timer(Updated):
   def __init__(self):
-    self.lastTime = self.sTime()
+    self.lastTime = self.time()
 
-  def sTime(self):
-    raise NotImplementedError()
+  def time(self):
+    return Measurement(time(), Seconds())
 
   def update(self, **kwargs):
-    now = self.sTime()
-    deltaTime = now - self.lastTime
+    now = self.time()
+    deltaTime = Measurement(now.magnitude - self.lastTime.magnitude, now.unit)
     self.lastTime = now
     return deltaTime
 

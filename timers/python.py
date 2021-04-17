@@ -1,21 +1,18 @@
 
 
-from time import time, time_ns
+from measurements import Measurement
+from time import time_ns
 from timers import Timer
+from units.time import Seconds
+from units.prefixes.small import Nano
 
 
-class PythonSeconds(Timer):
+class PythonTimer(Timer):
   def __init__(self):
     Timer.__init__(self)
 
-  def sTime(self):
-    return time()
-
-
-class PythonNanoseconds(Timer):
-  def __init__(self):
-    Timer.__init__(self)
-
-  def sTime(self):
-    return time_ns() / 1e-9
+  def time(self):
+    measurement = Measurement(1, Seconds()).convertTo(Nano())
+    measurement.magnitude = time_ns() # Update the magnitude.
+    return measurement
 

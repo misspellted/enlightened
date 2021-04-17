@@ -4,15 +4,18 @@ from defaults import DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from emitter import EmittingCursor
 from entities.rays import Ray
 from geometry.vertices import Vertex2
+from math import cos, sin, pi
+from physics import MAXIMUM_VELOCITY
 import pygame
 from random import random
 from scenes.pygame import PyGameScene
-from timers.python import PythonSeconds
+from timers import Timer
 
 
 # TODO: Have fun with these! Definitely a particle system in this code, lol!
 MAXIMUM_RAYS = 16
 RAYS_PER_EMIT = MAXIMUM_RAYS >> 2
+RAYS_PER_EMIT = 1 if RAYS_PER_EMIT <= 0 else RAYS_PER_EMIT
 EMIT_COOLDOWN = 1 << 3
 
 
@@ -21,7 +24,11 @@ class BouncingCursor(EmittingCursor):
     EmittingCursor.__init__(self, cameraOverlay, radius=radius, mouseVisible=mouseVisible)
 
   def emitRay(self):
-    return Ray(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5), rayColor=(127, 127, 0))
+    # Pick a random heading for the ray.
+    heading = random() * 2 * pi
+    vx = cos(heading) * MAXIMUM_VELOCITY * 0.0000000005
+    vy = sin(heading) * MAXIMUM_VELOCITY * 0.0000000005
+    return Ray(self.position.copy(), Vertex2(vx, vy), rayColor=(127, 127, 0))
 
 
 class BouncingScene(PyGameScene):
@@ -91,7 +98,7 @@ class BouncingScene(PyGameScene):
 
 class BouncerDemo(PyGameApplication):
   def __init__(self, length, height, mouseVisible=True):
-    PyGameApplication.__init__(self, length, height, timer=PythonSeconds(), mouseVisible=mouseVisible)
+    PyGameApplication.__init__(self, length, height, timer=Timer(), mouseVisible=mouseVisible)
     self.setCursor(BouncingCursor(self.camera.overlay, mouseVisible=mouseVisible))
     self.setEnvironment(BouncingScene(self.timer, length, height))
     self.captionWindow("Bouncer Demo")

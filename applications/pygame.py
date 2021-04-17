@@ -9,14 +9,14 @@ from events.pygame import PyGameEventHandler
 from pygame import init, quit, BLEND_RGB_ADD
 from pygame.display import set_mode as createWindow, set_caption as captionWindow, flip as refreshWindow
 from pygame.event import get as events
-from timers.pygame import PyGameMilliseconds
+from timers.pygame import PyGameTimer
 
 
 class PyGameApplication(GraphicalApplication, PyGameEventHandler, CameraViewer):
   def __init__(self, length, height, frameRate=60, timer=None, mouseVisible=True):
     GraphicalApplication.__init__(self, length, height)
     init()
-    self.timer = PyGameMilliseconds() if timer is None else timer
+    self.timer = PyGameTimer() if timer is None else timer
     self.camera = PyGameCamera(self.timer, frameRate=60)
     self.setCursor(PyGameCursor(self.camera.overlay, mouseVisible=mouseVisible))
     self.camera.attach(self)

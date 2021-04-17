@@ -6,6 +6,7 @@ from entities import Entity
 from geometry.lines import Segment
 from pygame.draw import line as aline, aaline
 from random import random
+from units.prefixes.small import Milli
 
 
 RAY_BOUNCES = 4
@@ -27,7 +28,7 @@ def reflect(lower, current, modifier, upper):
   return (next, modified)
 
 
-class Ray(Positioned, Moving, Entity):
+class Ray(Entity, Positioned, Moving):
   def __init__(self, position, velocity, rayColor=None, trailLength=RAY_TRAIL_LENGTH):
     Positioned.__init__(self, position)
     Moving.__init__(self, velocity)
@@ -37,6 +38,7 @@ class Ray(Positioned, Moving, Entity):
     self.bounces = RAY_BOUNCES
     self.trail = list()
     self.trailLength = trailLength if 0 <= trailLength <= RAY_TRAIL_LENGTH else MAXIMUM_TRAIL_LENGTH
+    self.timeResolution = Milli()
 
   def alive(self):
     return 0 <= self.bounces
@@ -48,7 +50,14 @@ class Ray(Positioned, Moving, Entity):
     self.bounces -= 1
 
   def update(self, **kwargs):
+    deltaTime = kwargs["deltaTime"] if "deltaTime" in kwargs else None
     environment = kwargs["environment"] if "environment" in kwargs else None
+
+    velocityModifier = 1
+    if deltaTime:
+      velocityModifier = deltaTime.convertTo(self.timeResolution).magnitude
+
+    modifiedVelocity = self.velocity * velocityModifier
 
     if environment:
       length, height = environment.dimensions.tupled()
@@ -57,27 +66,24 @@ class Ray(Positioned, Moving, Entity):
 
       self.lastPosition = self.position
 
-      # Project the ray's future position.
-      # projected = self.projectBy(self.velocity)
-
-      # Reflect the ray if necessary.
-      px, vx = reflect(0, self.position.x, self.velocity.x, length)
-      py, vy = reflect(0, self.position.y, self.velocity.y, height)
-
-      if self.velocity.x != vx or self.velocity.y != vy:
-        self.onReflection()
-
-      if self.velocity.x != vx:
-        self.velocity.x *= -1
-
-      if self.velocity.y != vy:
-        self.velocity.y *= -1
-
       # TODO: Use perception (do a perception check! lol) to determine
       # near-by entities that might cause interfere with the projection.
 
       # Project the ray's future position.
       # projected = self.projectBy(self.velocity)
+
+      # Reflect the ray if necessary.
+      px, vx = reflect(0, self.position.x, modifiedVelocity.x, length)
+      py, vy = reflect(0, self.position.y, modifiedVelocity.y, height)
+
+      if modifiedVelocity.x != vx or modifiedVelocity.y != vy:
+        self.onReflection()
+
+      if modifiedVelocity.x != vx:
+        self.velocity.x *= -1
+
+      if modifiedVelocity.y != vy:
+        self.velocity.y *= -1
 
       self.position.x = px
       self.position.y = py

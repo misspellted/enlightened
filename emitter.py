@@ -6,6 +6,7 @@ from defaults import DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from entities.rays import Ray
 from geometry.vertices import Vertex2
 from math import cos, sin, pi
+from physics import MAXIMUM_VELOCITY
 import pygame
 from random import random
 from scenes.pygame import PyGameScene
@@ -31,7 +32,11 @@ class EmittingCursor(PyGameCursor):
     self.color = EmittingCursor.COLOR_BOUNCING
 
   def emitRay(self):
-    return Ray(self.position.copy(), Vertex2(random() - 0.5, random() - 0.5))
+    # Pick a random heading for the ray.
+    heading = random() * 2 * pi
+    vx = cos(heading) * MAXIMUM_VELOCITY * 0.0000000005
+    vy = sin(heading) * MAXIMUM_VELOCITY * 0.0000000005
+    return Ray(self.position.copy(), Vertex2(vx, vy))
 
   def emitRays(self, raysPerEmit):
     # Use the cursor to indicate the 'emit' mode.
