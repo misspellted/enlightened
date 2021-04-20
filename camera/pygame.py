@@ -1,26 +1,30 @@
 
 
-from camera import Camera
+from attributes.rendered import Rendered
+from camera import Camera, DEFAULT_FRAME_RATE
 from camera.sensor.pygame import PyGameCameraSensor
 from camera.overlay.pygame import PyGameCameraOverlay
-from camera.viewer.pygame import PyGameCameraViewer
+from geometry.vertices import Vertex2
 import pygame
 
 
 class PyGameCamera(Camera):
-  def __init__(self):
-    Camera.__init__(self)
-    pygame.init()
+  def __init__(self, timer, frameRate=DEFAULT_FRAME_RATE):
+    Camera.__init__(self, timer, frameRate)
 
   def configureOverlay(self, viewer):
     self.attach(PyGameCameraOverlay(viewer))
 
-  def configureViewer(self, length, height, frameRate=60):
-    self.attach(PyGameCameraViewer(length, height, frameRate))
-
   def configureSensor(self, length, height, frameRate=60):
+    print(f"Configuring PyGameCamera sensor: {length} x {height} @ {frameRate} frames")
     self.attach(PyGameCameraSensor(length, height, frameRate))
 
-  def __del__(self):
-    pygame.quit()
+  def capture(self, environment):
+    captured = None
+
+    if isinstance(environment, Rendered):
+      captured = environment.render()
+
+      if captured and self.sensor:
+        self.sensor.displayRendering(captured, Vertex2(0, 0))
 

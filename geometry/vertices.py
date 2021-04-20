@@ -26,6 +26,9 @@ class Vertex:
 
     return equal
 
+  def __str__(self):
+    return str(self.coordinates)
+
   # ================================
   # Translation Operations
   # ================================

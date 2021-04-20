@@ -1,28 +1,29 @@
 
 
-from attributes.updated import Updated
+from attributes.intervaled import Intervaled
 from camera.overlay import CameraOverlay
 from camera.sensor import CameraSensor
-from camera.timers import CameraTimer
 from camera.viewer import CameraViewer
+from entities import Entity
+from units.prefixes.small import Milli
 
 
 DEFAULT_FRAME_RATE = 60
 
 
-class Camera(Updated):
-  def __init__(self, frameRate=DEFAULT_FRAME_RATE):
-    self.targetFrameRate = frameRate
-    self.timer = CameraTimer()
-    self.msTargetFrameTime = self.timer.calculateFrameTime(frameRate)
-    self.msAccumulatedTime = 0
+class Camera(Entity, Intervaled):
+  def __init__(self, timer, frameRate=DEFAULT_FRAME_RATE):
+    resolution = Milli()
+    Intervaled.__init__(self, 1 / (resolution.scalor * frameRate), resolution)
     self.viewer = None
     self.overlay = None
     self.sensor = None
-    self.lastTime = self.timer.getTime()
 
-  def configureViewer(self, length, height, frameRate=60):
-    pass
+  def alive(self):
+    return True # The camera, for now, will always be living.
+
+  def die(self):
+    pass # And as part of an immortal existence, the request to die is simply ignored.
 
   def configureOverlay(self, viewer):
     pass
@@ -30,30 +31,34 @@ class Camera(Updated):
   def configureSensor(self, length, height, frameRate=60):
     pass
 
+  def onFrameCaptured(self, frame):
+    if self.viewer:
+      self.viewer.displayFrame(frame)
+
   def attach(self, component):
     if isinstance(component, CameraViewer):
       self.viewer = component
       self.configureOverlay(self.viewer)
-      self.viewer.onAttachment(self)
     elif isinstance(component, CameraOverlay):
       self.overlay = component
       self.overlay.onAttachment(self)
     elif isinstance(component, CameraSensor):
       self.sensor = component
-      self.sensor.onAttachment(self)
-
-  def onFrameCaptured(self, frame):
-    if self.viewer:
-      self.viewer.displayFrame(frame)
+      self.sensor.onInterval = lambda: self.onFrameCaptured(self.sensor.captureFrame())
 
   def onOverlayGenerated(self, overlay):
     if self.viewer:
       self.viewer.displayOverlay(overlay)
 
-  def update(self):
-    now = self.timer.getTime()
-    deltaTime = now - self.lastTime
-    self.lastTime = now
+  def capture(self, environment):
+    pass
+
+  def onInterval(self):
+    if self.viewer:
+      self.viewer.refreshView()
+
+  def update(self, **kwargs):
+    deltaTime = kwargs["deltaTime"] if "deltaTime" in kwargs else 0
 
     if self.sensor:
       self.sensor.update(deltaTime=deltaTime)
@@ -61,14 +66,5 @@ class Camera(Updated):
     if self.overlay:
       self.overlay.update(deltaTime=deltaTime)
 
-    if self.viewer:
-      self.viewer.update(deltaTime=deltaTime)
-
-    self.msAccumulatedTime += deltaTime
-
-    if self.msTargetFrameTime <= self.msAccumulatedTime:
-      if self.msTargetFrameTime == 0:
-        self.msAccumulatedTime = 0
-      else:
-        self.msAccumulatedTime -= self.msTargetFrameTime
+    Intervaled.update(self, **kwargs)
 
