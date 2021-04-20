@@ -104,7 +104,7 @@ This demonstration was created in response to a Discord guild member reacting
 to an image posted in the guild. The individual stated that the image of the
 Emitter demo reminded them of an algorithm visualization video on YouTube, and
 then linked it. After review, I thought it possible to do with what enlightened
-had available at the time, and made it so.
+had available at the time, and made it so; I then decided to keep it as a demo.
 
 Currently, it visualizes [what I think is] the "bubble sort" sorting algorithm,
 however, I've not verified the algorithm to be exactly the bubble sort method.
