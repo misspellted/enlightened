@@ -101,7 +101,7 @@ of the repository:
 ### Sorter Demo
 
 This demonstration was created in response to a Discord guild member reacting
-to an image posted in the guild. The individual said that the image of the
+to an image posted in the guild. The individual stated that the image of the
 Emitter demo reminded them of an algorithm visualization video on YouTube, and
 then linked it. After review, I thought it possible to do with what Enlightened
 had available at the time, and made it so.
