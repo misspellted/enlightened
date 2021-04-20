@@ -103,7 +103,7 @@ of the repository:
 This demonstration was created in response to a Discord guild member reacting
 to an image posted in the guild. The individual stated that the image of the
 Emitter demo reminded them of an algorithm visualization video on YouTube, and
-then linked it. After review, I thought it possible to do with what Enlightened
+then linked it. After review, I thought it possible to do with what enlightened
 had available at the time, and made it so.
 
 Currently, it visualizes [what I think is] the "bubble sort" sorting algorithm,
