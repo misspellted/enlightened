@@ -1,6 +1,6 @@
 
 
-from algorithms.sorting.bubble import BubbleSort
+from algorithms.sorting.bubble import BubbleSort, OptimizedBubbleSort
 from applications.pygame import PyGameApplication
 from attributes.intervaled import Intervaled
 from cursors.pygame import PyGameCursor
@@ -8,24 +8,25 @@ from defaults import DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT
 from geometry.vertices import Vertex2
 from math import radians, cos, sin, floor
 import pygame
-from pygame.draw import line as aline, aaline
+from pygame.draw import line as jaggedLine, aaline as smoothLine
 from random import randint
 from scenes.pygame import PyGameScene
 from units.prefixes.small import Milli
 
 
-DATA_SIZE = 360
+# DATA_SIZE = 2160
+DATA_SIZE = min(DEMO_WINDOW_LENGTH, DEMO_WINDOW_HEIGHT) << 1
 
 
 class SortingScene(PyGameScene, Intervaled):
-  def __init__(self, timer, length, height, algorithm):
+  def __init__(self, timer, length, height, algorithm, data):
     PyGameScene.__init__(self, timer, length, height)
     resolution = Milli()
     Intervaled.__init__(self, 1 / (resolution.scalor * 120), resolution)
     self.origin = Vertex2(length / 2, height / 2)
     self.radius = min(*self.origin.coordinates) * 0.80
     self.algorithm = algorithm
-    self.reset()
+    self.reset(data)
 
   def shuffle(self, shuffles=3000):
     count = 0
@@ -37,8 +38,8 @@ class SortingScene(PyGameScene, Intervaled):
         self.data[a], self.data[b] = self.data[b], self.data[a]
         count += 1
 
-  def reset(self):
-    self.data = list(range(DATA_SIZE))
+  def reset(self, data):
+    self.data = data
     self.shuffle()
     self.algorithm.reset()
     self.delayed = False
@@ -52,7 +53,7 @@ class SortingScene(PyGameScene, Intervaled):
         if not self.delayed:
           self.delayed = True
         else:
-          self.reset()
+          self.reset(self.data)
       handled = True
 
     return handled
@@ -100,12 +101,12 @@ class SortingScene(PyGameScene, Intervaled):
       point = self.data[index]
       rads = self.radialize(index)
 
-      outer = self.origin + Vertex2(cos(rads) * length / 2, sin(rads) * height / 2)
+      outer = self.origin + Vertex2(cos(rads) * length *.45, sin(rads) * height *.45)
       color = self.colorize(point)
 
       try:
-        aaline(self.scene, color, self.origin.tupled(), outer.tupled())
-        aline(self.scene, color, self.origin.tupled(), outer.tupled())
+        smoothLine(self.scene, color, self.origin.tupled(), outer.tupled())
+        # jaggedLine(self.scene, color, self.origin.tupled(), outer.tupled())
       except TypeError as oops:
         print(f"Failed at {origin} -> {outer}: {oops}!")
         break
@@ -115,9 +116,24 @@ class SorterDemo(PyGameApplication):
   def __init__(self, length, height, mouseVisible=True):
     PyGameApplication.__init__(self, length, height, mouseVisible=mouseVisible)
     self.setCursor(PyGameCursor(self.camera.overlay, mouseVisible=mouseVisible))
-    algorithm = BubbleSort()
-    self.setEnvironment(SortingScene(self.timer, length, height, BubbleSort()))
-    self.captionWindow(f"Sorter Demo - {algorithm.name}")
+    self.algorithm = BubbleSort()
+    self.data = list(range(DATA_SIZE))
+    self.setEnvironment(SortingScene(self.timer, length, height, self.algorithm, self.data))
+    self.reset()
+
+  def reset(self):
+    self.delayed = False
+    self.captionWindow(f"Sorter Demo - {self.algorithm.name}")
+    self.environment.reset(self.data)
+
+  def onMouseButtonPressed(self, button):
+    if button == pygame.BUTTON_RIGHT and self.algorithm.finished(self.data):
+      if not self.delayed:
+        self.delayed = True
+      else:
+        # Toggle between optimized and regular bubble sort.
+        self.algorithm = BubbleSort() if isinstance(self.algorithm, OptimizedBubbleSort) else OptimizedBubbleSort()
+        self.reset()
 
 
 if __name__ == "__main__":
