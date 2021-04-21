@@ -119,3 +119,9 @@ of the repository:
 
     python sorter.py
 
+This demonstration now has 2 sorting algorithms! Bubble sort, and ... optimized
+bubble sort! Yay! ahhh, couldn't resist!
+
+Anyways, once the visualization is complete, a two left mouse clicks will reset
+the current algorithm, while two right clicks will toggle between them (and reset).
+

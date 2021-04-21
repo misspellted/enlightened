@@ -9,33 +9,60 @@ class BubbleSort(SortingAlgorithm):
     self.reset()
 
   def reset(self):
-    self.sorted = 0
-
-  def started(self, data):
-    return 0 < self.sorted
+    self.started = False
+    self.swaps = 0
 
   def finished(self, data):
-    return self.sorted == len(data)
+    return self.started and self.swaps == 0
 
   def step(self, data):
-    if not self.finished(data):
-      targetIndex = len(data) - 1 - self.sorted
-      highestIndex = 0
-      highest = data[highestIndex]
+    if not self.started:
+      self.started = True
 
-      for index in range(targetIndex + 1):
-        value = data[index]
+    # One 'step' is one iteration through the elements.
+    # Reset the swap count on every iteration.
+    self.swaps = 0
 
-        if not highest:
-          highest = value
-          highestIndex = index
-        else:
-          if highest < value:
-            highest = value
-            highestIndex = index
+    # Each iteration compares the current element with the next,
+    # swapping if the current is larger than the next.
 
-      data[targetIndex], data[highestIndex] = data[highestIndex], data[targetIndex]
-      self.sorted += 1
+    for index in range(len(data) - 1):
+      if data[index + 1] < data[index]:
+        self.swaps += 1
+        data[index], data[index + 1] = data[index + 1], data[index]
+
+    return data
+
+
+class OptimizedBubbleSort(BubbleSort):
+  # The optimized version tracks how many steps taken, so that it need not
+  # sort the largest element at the end of the collection again.
+  def __init__(self):
+    BubbleSort.__init__(self)
+    self.name = "Bubble Sort (Optimized)"
+    self.reset()
+
+  def reset(self):
+    BubbleSort.reset(self)
+    self.steps = 0
+
+  def step(self, data):
+    if not self.started:
+      self.started = True
+
+    # One 'step' is one iteration through the elements.
+    self.steps += 1
+
+    # Reset the swap count on every iteration.
+    self.swaps = 0
+
+    # Each iteration compares the current element with the next,
+    # swapping if the current is larger than the next.
+
+    for index in range(len(data) - self.steps):
+      if data[index + 1] < data[index]:
+        self.swaps += 1
+        data[index], data[index + 1] = data[index + 1], data[index]
 
     return data
 
